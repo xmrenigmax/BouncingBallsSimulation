@@ -32,9 +32,9 @@ black_hole_radius = 20
 black_hole_position = [random.uniform(center_x - radius + black_hole_radius, center_x + radius - black_hole_radius),
                        random.uniform(center_y - radius + black_hole_radius, center_y + radius - black_hole_radius)]
 black_hole_velocity = [random.uniform(2, 16), random.uniform(2, 16)]  # Increased initial velocity
-gravity = 0.5  # Increased gravity effect
-friction = 0.99
+gravity = 0.2  # Gravity effect
 velocity_gain = 0.2  # Velocity gain upon collision
+wall_bounce_gain = 0.8  # Ricochet effect, lose some momentum
 
 # Initialize balls
 for _ in range(initial_num_balls):
@@ -95,15 +95,13 @@ while running:
     black_hole_position[0] += black_hole_velocity[0]
     black_hole_position[1] += black_hole_velocity[1]
     black_hole_velocity[1] += gravity  # Apply gravity to the black hole
-    black_hole_velocity[0] *= friction
-    black_hole_velocity[1] *= friction
 
     # Check for collisions with the circular boundary
     distance_from_center = math.sqrt((black_hole_position[0] - center_x) ** 2 + (black_hole_position[1] - center_y) ** 2)
     if distance_from_center + black_hole_radius > radius:
         angle = math.atan2(black_hole_position[1] - center_y, black_hole_position[0] - center_x)
-        black_hole_velocity[0] += 0.2 * math.cos(angle)
-        black_hole_velocity[1] += 0.2 * math.sin(angle)
+        black_hole_velocity[0] = -black_hole_velocity[0] * wall_bounce_gain
+        black_hole_velocity[1] = -black_hole_velocity[1] * wall_bounce_gain
         black_hole_position[0] = center_x + (radius - black_hole_radius) * math.cos(angle)
         black_hole_position[1] = center_y + (radius - black_hole_radius) * math.sin(angle)
 
