@@ -34,7 +34,12 @@ black_hole_position = [random.uniform(center_x - radius + black_hole_radius, cen
 black_hole_velocity = [random.uniform(2, 16), random.uniform(2, 16)]  # Increased initial velocity
 gravity = 0.2  # Gravity effect
 velocity_gain = 0.2  # Velocity gain upon collision
-wall_bounce_gain = 0.8  # Ricochet effect, lose some momentum
+wall_bounce_gain = 0.8  # Ricochet effect, gain some momentum
+random_bounce_factor = 1  # Random perturbation factor
+
+# Timers for fluctuating wall_bounce_gain and changing direction
+last_wall_bounce_gain_change = time.time()
+last_direction_change = time.time()
 
 # Initialize balls
 for _ in range(initial_num_balls):
@@ -94,7 +99,9 @@ while running:
     # Update black hole position and velocity
     black_hole_position[0] += black_hole_velocity[0]
     black_hole_position[1] += black_hole_velocity[1]
-    black_hole_velocity[1] += gravity  # Apply gravity to the black hole
+
+    # Apply gravitational pull downwards
+    black_hole_velocity[1] += gravity
 
     # Check for collisions with the circular boundary
     distance_from_center = math.sqrt((black_hole_position[0] - center_x) ** 2 + (black_hole_position[1] - center_y) ** 2)
@@ -102,6 +109,8 @@ while running:
         angle = math.atan2(black_hole_position[1] - center_y, black_hole_position[0] - center_x)
         black_hole_velocity[0] = -black_hole_velocity[0] * wall_bounce_gain
         black_hole_velocity[1] = -black_hole_velocity[1] * wall_bounce_gain
+        black_hole_velocity[0] += random.uniform(-random_bounce_factor, random_bounce_factor)
+        black_hole_velocity[1] += random.uniform(-random_bounce_factor, random_bounce_factor)
         black_hole_position[0] = center_x + (radius - black_hole_radius) * math.cos(angle)
         black_hole_position[1] = center_y + (radius - black_hole_radius) * math.sin(angle)
 
@@ -118,6 +127,17 @@ while running:
             velocities.pop(i)
             colors.pop(i)
             last_duplication_times.pop(i)
+
+    # Randomly fluctuate wall_bounce_gain every 3 seconds
+    if time.time() - last_wall_bounce_gain_change >= 3:
+        wall_bounce_gain = random.uniform(0.8, 1.1)
+        last_wall_bounce_gain_change = time.time()
+
+    # Change black hole direction every 8 seconds
+    if time.time() - last_direction_change >= 8:
+        black_hole_velocity[0] = random.uniform(-16, 16)
+        black_hole_velocity[1] = random.uniform(-16, 16)
+        last_direction_change = time.time()
 
     # Handle events
     for event in pygame.event.get():
